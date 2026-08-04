@@ -15,7 +15,8 @@ from plots import (
     plot_longitude_error,
     plot_altitude_error,
     plot_residuals,
-    plot_trajectory
+    plot_trajectory,
+    plot_actual_vs_predicted
 )
 
 
@@ -38,6 +39,7 @@ def main():
     plot_altitude_error(y_test, predictions)
     plot_residuals(y_test, predictions)
     plot_trajectory(y_test, predictions)
+    plot_actual_vs_predicted(y_test, predictions)
 
     export_metrics(metrics)
     export_predictions(predictions)
