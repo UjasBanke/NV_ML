@@ -3,49 +3,57 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 
-FEATURES = [
-    "roll_deg",
-    "pitch_deg",
-    "yaw_deg",
-    "B_proj_D1_nT",
-    "B_proj_D2_nT",
-    "B_proj_D3_nT",
-    "B_proj_D4_nT",
-    "Bx_meas_nT",
-    "By_meas_nT",
-    "Bz_meas_nT",
-    "B_total_meas_nT"
-]
-
-TARGETS = [
-    "lat_deg",
-    "lon_deg",
-    "alt_m"
-]
+DATA_PATH = "data/final_nv_navigation_dataset.csv"
 
 
-def load_data(path):
-    df = pd.read_csv(path)
+def load_data():
+    df = pd.read_csv(DATA_PATH)
 
-    X = df[FEATURES]
-    y = df[TARGETS]
+    target_columns = [
+        "lat_deg",
+        "lon_deg",
+        "alt_m"
+    ]
 
-    return X, y
+    feature_columns = [
+        column
+        for column in df.columns
+        if column not in target_columns + ["time_s"]
+    ]
+
+    X = df[feature_columns]
+    y = df[target_columns]
+    time = df["time_s"]
+
+    return X, y, time
 
 
-def preprocess_data(path):
-    X, y = load_data(path)
+def preprocess_data():
+    X, y, time = load_data()
 
-    X_train, X_test, y_train, y_test = train_test_split(
+    X_train, X_test, y_train, y_test, time_train, time_test = train_test_split(
         X,
         y,
+        time,
         test_size=0.2,
         random_state=42
     )
 
     scaler = StandardScaler()
 
-    X_train = scaler.fit_transform(X_train)
-    X_test = scaler.transform(X_test)
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
 
-    return X_train, X_test, y_train, y_test, scaler
+    X_all_scaled = scaler.transform(X)
+
+    return (
+        X_train_scaled,
+        X_test_scaled,
+        X_all_scaled,
+        y_train,
+        y_test,
+        y,
+        time_train,
+        time_test,
+        time
+    )

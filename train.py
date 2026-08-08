@@ -1,28 +1,61 @@
+import os
 import joblib
+
 from xgboost import XGBRegressor
 from sklearn.multioutput import MultiOutputRegressor
 
 from preprocess import preprocess_data
 
 
-DATA_PATH = "data/final_nv_navigation_dataset.csv"
-
-
 def train_model():
-    X_train, X_test, y_train, y_test, scaler = preprocess_data(DATA_PATH)
 
-    model = MultiOutputRegressor(
-        XGBRegressor(
-            n_estimators=200,
-            learning_rate=0.05,
-            max_depth=6,
-            random_state=42
-        )
+    os.makedirs(
+        "models",
+        exist_ok=True
     )
 
-    model.fit(X_train, y_train)
+    (
+        X_train,
+        X_test,
+        X_all,
+        y_train,
+        y_test,
+        y_all,
+        time_train,
+        time_test,
+        time_all
+    ) = preprocess_data()
 
-    joblib.dump(model, "models/xgboost_model.pkl")
-    joblib.dump(scaler, "models/scaler.pkl")
+    base_model = XGBRegressor(
+        n_estimators=300,
+        max_depth=6,
+        learning_rate=0.05,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        objective="reg:squarederror",
+        random_state=42
+    )
 
-    return model, scaler, X_test, y_test
+    model = MultiOutputRegressor(
+        base_model
+    )
+
+    model.fit(
+        X_train,
+        y_train
+    )
+
+    joblib.dump(
+        model,
+        "models/xgboost_model.pkl"
+    )
+
+    return (
+        model,
+        X_test,
+        y_test,
+        X_all,
+        y_all,
+        time_test,
+        time_all
+    )
